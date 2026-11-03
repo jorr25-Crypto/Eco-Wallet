@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Eco-Wallet</title>
+<style>
+:root{--page:#222;--bg:#a8e6a9;--bg2:#4caf50;--card:#dfe6da;--card2:#d9d9d9;--chip:#f3f2f4;--ink:#111;--mut:#5b6670;--g:#2e7d32;--gl:#4caf50;--streak:#e5e0b5;--fire:#b0410a;--field:#f1faf1;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--page:#0b0f0c;--bg:#17301b;--bg2:#1f4a25;--card:#26362a;--card2:#2b332d;--chip:#2d3a30;--ink:#eef5ee;--mut:#a3b3a6;--g:#7bd883;--gl:#4caf50;--streak:#3d3a1f;--fire:#f0a35c;--field:#223727}}
+:root[data-theme="dark"]{--page:#0b0f0c;--bg:#17301b;--bg2:#1f4a25;--card:#26362a;--card2:#2b332d;--chip:#2d3a30;--ink:#eef5ee;--mut:#a3b3a6;--g:#7bd883;--gl:#4caf50;--streak:#3d3a1f;--fire:#f0a35c;--field:#223727}
+*{box-sizing:border-box;margin:0}
+html,body{height:100%}
+body{background:var(--page);font:16px/1.3 -apple-system,"Segoe UI",Inter,system-ui,sans-serif;color:var(--ink);display:flex;justify-content:center}
+#app{width:100%;max-width:430px;min-height:100%;background:var(--bg);padding:16px 16px 110px;display:flex;flex-direction:column;gap:16px}
+#app.rw{background:var(--bg2)}
+.logo{font-size:44px;font-weight:300;color:#fff;text-align:center;letter-spacing:.5px}.logo b{color:var(--gl);font-weight:300}
+.auth{justify-content:center;align-items:center;padding-bottom:40px}
+.btn{border:0;border-radius:999px;background:var(--gl);color:#fff;font-size:20px;padding:8px 30px;cursor:pointer}
+.btn.w{width:100%;border-radius:10px;padding:12px}
+.link{background:none;border:0;color:var(--ink);font-size:14px;cursor:pointer;text-decoration:underline}
+.form{width:100%;display:flex;flex-direction:column;gap:12px}
+.form label{font-size:14px;margin-bottom:-6px}
+.in{width:100%;border:1.5px solid var(--gl);background:var(--field);color:var(--ink);border-radius:12px;padding:10px 14px;font-size:15px}
+.err{color:#b3261e;font-size:13px;min-height:16px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.ib{width:48px;height:48px;border-radius:50%;background:var(--chip);border:0;display:grid;place-items:center;position:relative;color:var(--ink);cursor:pointer}
+.ib svg{width:26px;height:26px}.dot{position:absolute;top:9px;right:11px;width:9px;height:9px;border-radius:50%;background:#e53935}
+.pill{background:var(--chip);border-radius:999px;padding:4px 14px;font-weight:700;font-size:18px}
+.bal{background:var(--chip);border-radius:999px;padding:6px 14px;font-size:22px}
+.big{align-self:center;background:var(--chip);border-radius:999px;padding:12px 26px;font-size:44px;margin:40px 0}
+.card{background:var(--card);border-radius:24px;padding:16px;box-shadow:0 3px 8px #0002}
+.row{display:flex;gap:12px}.row>.card{flex:1}
+.streak{background:var(--streak);text-align:center;color:var(--g)}.streak h3{color:var(--fire)}
+.flames{letter-spacing:2px;font-size:20px;margin-top:8px}.flames i{font-style:normal;opacity:.3;filter:grayscale(1)}.flames i.on{opacity:1;filter:none}
+.card h2{color:var(--g);font-weight:600}
+.bar{height:10px;background:#0002;border-radius:9px;overflow:hidden;margin:8px 0 4px}.bar>i{display:block;height:100%;background:var(--g);border-radius:9px;transition:width .5s}
+.sm{font-size:13px;color:var(--mut)}
+.cam{position:relative;background:#363636;border-radius:4px;aspect-ratio:1/1.16;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding-bottom:18px;overflow:hidden}
+.cam video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.rcpt{position:absolute;top:0;left:9%;right:9%;background:#fff;color:#111;font-size:10px;padding:8px 10px;border-bottom:6px dotted #ccc}
+.rcpt div{display:flex;justify-content:space-between;padding:3px 0}.rcpt .t{border-top:1px solid #2e7d32;font-weight:700;margin-top:4px}.rcpt .t b{color:#2e7d32;font-size:15px}
+.bc{height:34px;margin:6px 0 2px;background:repeating-linear-gradient(90deg,#000 0 2px,#fff 2px 4px,#000 4px 5px,#fff 5px 8px)}
+.frame{position:absolute;top:38%;left:50%;width:48%;aspect-ratio:1;transform:translate(-50%,-50%);border:3px solid #fff8;border-radius:10px;pointer-events:none}
+.shutter{position:relative;width:60px;height:60px;border-radius:50%;background:#d9d9d9;border:4px solid var(--gl);cursor:pointer}
+.chip{background:var(--card);border-radius:999px;padding:12px;text-align:center;font-size:20px;box-shadow:0 3px 8px #0002}
+.chip.ok{color:var(--g)}
+.nav{position:fixed;bottom:calc(18px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);width:min(398px,calc(100% - 32px));background:var(--card2);border-radius:999px;display:flex;justify-content:space-around;padding:4px;border:2px solid #fff6;z-index:5}
+.nav button{width:62px;height:46px;border:0;border-radius:999px;background:none;color:var(--ink);display:grid;place-items:center;cursor:pointer}
+.nav button.on{background:#8886}.nav svg{width:28px;height:28px}
+.who{display:flex;gap:16px;align-items:center}.av{font-size:54px}
+.rw .head{background:var(--card);margin:-16px -16px 0;padding:16px 16px 20px;display:flex;flex-direction:column;gap:14px}
+.stats{display:flex;justify-content:space-around;text-align:center}.stats b{display:block;font-size:22px}
+.h{color:#fff;font-size:20px;font-weight:600}
+.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.tile{background:var(--card);border:0;border-radius:24px;min-height:200px;padding:8px 4px 12px;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--ink);cursor:pointer;text-align:center}
+.tile .e{font-size:34px;margin-bottom:auto;margin-top:34px}.tile small{font-weight:400;color:var(--g)}.tile:disabled{opacity:.55}.tile.no{opacity:.6}
+.list{display:flex;flex-direction:column;gap:8px}.li{display:flex;justify-content:space-between;gap:10px;font-size:14px;padding:6px 0;border-bottom:1px solid #0001}.li b.p{color:var(--g)}.li b.m{color:#b3261e}
+#toast{position:fixed;left:50%;bottom:calc(86px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:#222;color:#fff;padding:10px 16px;border-radius:12px;font-size:14px;z-index:20;max-width:90%;display:none}
+#sheet{position:fixed;inset:0;background:#0007;z-index:30;display:flex;align-items:flex-end;justify-content:center}
+#sheet[hidden]{display:none}
+#sheet>div{background:var(--bg);width:100%;max-width:430px;border-radius:24px 24px 0 0;padding:20px 20px calc(24px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:12px;max-height:80%;overflow:auto}
+</style></head>
+<body><div id="app"></div><div id="toast"></div><div id="sheet" hidden></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script>
+/* ---------- Supabase connection ---------- */
+/* Paste your values from Supabase: Project Settings -> API (Project URL + anon public key). Never paste the service_role key. */
+const SUPABASE_URL='PASTE_PROJECT_URL', SUPABASE_KEY='PASTE_ANON_PUBLIC_KEY';
+const CONFIGURED=!SUPABASE_URL.startsWith('PASTE');
+const sb=CONFIGURED?supabase.createClient(SUPABASE_URL,SUPABASE_KEY):null;
+/* ---------- config: change business rules here ---------- */
+const PTS_PER_DOLLAR=100, XP_PER_LEVEL=1250, MISSION={goal:10,reward:75};
+const REWARDS=[{id:'tree',name:'Plant a Tree',cost:1000,e:'🌳'},{id:'coffee',name:'Coffee Gift Card',cost:2500,e:'☕'},{id:'etransfer',name:'E-Transfer',cost:3000,e:'💸'},{id:'soon',name:'Coming soon',cost:4000,e:'✨',off:true}];
+const RATES={'Aluminum Cans':.60,'Plastic Bottles (PET)':.35,'Cardboard':.10,'Glass Bottles':.15};
+const SAMPLE='GW250525-00123';
+/* ---------- helpers ---------- */
+const $=s=>document.querySelector(s);
+let ME=null;
+const U=()=>ME;
+const money=n=>'$'+n.toFixed(2), num=n=>Math.round(n).toLocaleString('en-US');
+const day=(d=new Date())=>d.toLocaleDateString('en-CA');
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+async function sha(t){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(t));return[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}
+let S={screen:'splash',tab:'home',stream:null,flash:false,eye:false};
+const I={
+bell:'<path d="M6 16v-5a6 6 0 0112 0v5l2 2H4zM10 21h4"/>',user:'<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/><circle cx="12" cy="12" r="10"/>',
+gear:'<circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="8" stroke-dasharray="3 2.4"/>',home:'<path d="M3 11l9-8 9 8v10h-6v-6H9v6H3z"/>',
+qr:'<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3h-3zM19 14h2v2M14 20h2M19 19h2v2"/>',
+wallet:'<path d="M3 7h16a2 2 0 012 2v10H5a2 2 0 01-2-2zM3 7l12-3v3"/><circle cx="16.5" cy="14" r="1"/>',tree:'<path d="M12 2l5 7h-3l4 6h-5v7h-2v-7H6l4-6H7z"/>'};
+const ic=n=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round">${I[n]}</svg>`;
+function toast(m){const t=$('#toast');t.textContent=m;t.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(()=>t.style.display='none',2600)}
+function sheet(h){const s=$('#sheet');s.innerHTML='<div>'+h+'</div>';s.hidden=false}
+function closeSheet(){$('#sheet').hidden=true}
+
+/* ---------- user model: loaded from Supabase (row-level security limits every query to the signed-in user) ---------- */
+function rollDay(u){if(u.mission.day!==day())u.mission={day:day(),bottles:0,done:false}}
+async function load(){
+ const{data:{session}}=await sb.auth.getSession();
+ if(!session){ME=null;return}
+ const[p,t,n]=await Promise.all([
+  sb.from('profiles').select('*').eq('id',session.user.id).single(),
+  sb.from('transactions').select('*').order('created_at',{ascending:false}).limit(50),
+  sb.from('notifications').select('*').order('created_at',{ascending:false}).limit(20)]);
+ const d=p.data;if(!d){ME=null;return}
+ const tx=t.data||[],nt=n.data||[];
+ ME={name:d.name,email:d.email,balance:d.balance_cents/100,points:d.points,xp:d.xp,items:d.items,co2:+d.co2,lastDeposit:d.last_deposit_cents/100,
+  streak:d.streak,lastDay:d.last_day,mission:{day:d.mission_day,bottles:d.mission_bottles,done:d.mission_done},trees:d.trees,receipts:d.receipts,
+  history:tx.map(x=>({t:x.created_at,desc:x.description,cash:(x.cash_cents||0)/100,pts:x.points})),
+  notifs:nt.map(x=>({t:x.created_at,m:x.message})),unread:nt.some(x=>!x.read)}}
+
+/* ---------- receipt lookup (mock server: replace with an API call) ---------- */
+function lookup(code){
+ if(!/^GW\d{6}-\d{5}$/.test(code))return null;
+ let lb;
+ if(code===SAMPLE)lb=[12.6,8.4,15.2,21.3];
+ else{let s=+code.replace(/\D/g,'');const r=()=>(s=(s*9301+49297)%233280)/233280;lb=[0,0,0,0].map(()=>Math.round((r()*18+2)*10)/10)}
+ const lines=Object.entries(RATES).map(([m,rate],i)=>({m,lb:lb[i],rate,c:Math.round(lb[i]*rate*100+1e-6)}));
+ const total=lines.reduce((a,l)=>a+l.c,0)/100,w=lines.reduce((a,l)=>a+l.lb,0);
+ return{code,lines,total,bottles:Math.round(lb[1]*22+lb[3]*2.5),items:Math.round(lb[0]*32+lb[1]*22+lb[2]*.5+lb[3]*2.5),co2:Math.round(w*.2*10)/10}}
+
+async function redeemReceipt(raw){
+ const code=raw.replace(/\s/g,'').toUpperCase().replace(/^(GW\d{6})-?(\d{5})$/,'$1-$2');
+ if(!/^GW\d{6}-\d{5}$/.test(code))return toast('Code not recognized. Receipt codes look like GW250525-00123.');
+ const{error}=await sb.rpc('redeem_receipt',{p_code:code});
+ if(error)return toast(error.message);
+ await load();S.flash=true;render();setTimeout(()=>{S.flash=false;if(S.tab==='scan')render()},3500)}
+
+async function claim(id){
+ const r=REWARDS.find(x=>x.id===id);if(!r||r.off)return;
+ const{error}=await sb.rpc('claim_reward',{p_id:id});closeSheet();
+ if(error)return toast(error.message);
+ await load();toast('Redeemed: '+r.name);render()}
+
+/* ---------- auth ---------- */
+const pwOk=p=>p.length>=8&&/[a-z]/i.test(p)&&/\d/.test(p)&&/[^a-z0-9]/i.test(p);
+async function signup(){
+ const name=$('#fn').value.trim(),email=$('#em').value.trim().toLowerCase(),p=$('#p1').value,p2=$('#p2').value;
+ const e=!name?'Enter your full name.':!/^\S+@\S+\.\S+$/.test(email)?'Enter a valid email address.':!pwOk(p)?'Password needs 8+ characters with letters, numbers and symbols.':p!==p2?'Passwords don’t match.':'';
+ if(e)return $('#err').textContent=e;
+ const{data,error}=await sb.auth.signUp({email,password:p,options:{data:{name}}});
+ if(error)return $('#err').textContent=error.message;
+ if(!data.session){S.screen='login';render();return toast('Check your email to confirm your account, then log in.')}
+ await load();S.tab='home';render()}
+async function login(){
+ const{error}=await sb.auth.signInWithPassword({email:$('#em').value.trim().toLowerCase(),password:$('#p1').value});
+ if(error)return $('#err').textContent=error.message==='Invalid login credentials'?'Email or password is incorrect.':error.message;
+ await load();S.tab='home';render()}
+async function logout(){stopCam();await sb.auth.signOut();ME=null;S.screen='splash';closeSheet();render()}
+async function init(){
+ if(!CONFIGURED){$('#app').innerHTML='<div class="auth"><div class="card">Add your Supabase Project URL and anon key at the top of this file’s script.</div></div>';return}
+ await load();render()}
+
+/* ---------- camera ---------- */
+async function startCam(){
+ if(S.stream||!navigator.mediaDevices?.getUserMedia)return;
+ try{S.stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});
+  const v=$('#cam'),r=$('#sample');if(v&&r){v.srcObject=S.stream;v.hidden=false;r.hidden=true}else stopCam()}catch(e){}}
+function stopCam(){if(S.stream){S.stream.getTracks().forEach(t=>t.stop());S.stream=null}}
+async function shutter(){
+ if(!S.stream)return redeemReceipt(SAMPLE);
+ if(!('BarcodeDetector' in window))return toast('This browser can’t read codes live. Enter the code below instead.');
+ try{const r=await new BarcodeDetector().detect($('#cam'));if(r[0])return redeemReceipt(r[0].rawValue)}catch(e){}
+ toast('No code found. Hold steady and try again.')}
+
+/* ---------- views ---------- */
+const nav=()=>`<nav class="nav">${[['home','home'],['scan','qr'],['wallet','wallet'],['impact','tree']].map(([t,i])=>`<button data-act="tab" data-t="${t}" aria-label="${t}" class="${S.tab===t?'on':''}">${ic(i)}</button>`).join('')}</nav>`;
+const head=(t,right)=>`<div class="top"><button class="ib" data-act="bell" aria-label="Notifications">${ic('bell')}${U().unread?'<span class="dot"></span>':''}</button><span class="pill">${t}</span>${right}</div>`;
+const prof=`<button class="ib" data-act="me" aria-label="Profile">${ic('user')}</button>`;
+const logo='<div class="logo"><b>E</b>co-Wallet</div>';
+const pwField=(id,ph)=>`<input class="in" id="${id}" type="password" placeholder="${ph}" autocomplete="${id==='p1'?'current-password':'new-password'}">`;
+
+function authView(){
+ if(S.screen==='login')return`<div class="auth">${logo}<div class="form" style="margin-top:80px"><input class="in" id="em" type="email" placeholder="Email" autocomplete="email">${pwField('p1','Password')}<div class="err" id="err"></div><button class="link" data-act="forgot" style="align-self:flex-start">Forgot password?</button><button class="btn" data-act="login" style="align-self:center">Log in</button><button class="link" data-act="splash" style="align-self:center">Back</button></div></div>`;
+ if(S.screen==='signup')return`<div class="auth">${logo}<div class="form" style="margin-top:12px"><h2 style="text-align:center;font-weight:500;color:var(--ink)">Create your account</h2><label for="fn">Full name</label><input class="in" id="fn" placeholder="Enter your full name" autocomplete="name"><label for="em">Email address</label><input class="in" id="em" type="email" placeholder="youremail@gmail.com" autocomplete="email"><label for="p1">Password</label>${pwField('p1','Create a password')}<label for="p2">Confirm password</label>${pwField('p2','Repeat your password')}<div class="sm">Use 8+ characters with a mix of letters, numbers and symbols.</div><div class="err" id="err"></div><button class="btn w" data-act="signup">Continue</button><button class="link" data-act="splash" style="align-self:center">Back</button></div></div>`;
+ return`<div class="auth">${logo}<div class="form" style="align-items:center;margin-top:16px"><button class="btn" data-act="go-login">Log in</button><button class="btn" data-act="go-signup">Sign up</button></div></div>`}
+
+function homeView(u){rollDay(u);const m=u.mission,pct=Math.min(100,m.bottles/MISSION.goal*100),n=Math.min(u.streak,7),doneToday=u.lastDay===day();
+ return head('Home',prof)+`<div class="big">${money(u.balance)}</div>
+ <div class="row"><div class="card streak"><h3>🔥 ${u.streak} Day Streak</h3><p style="margin-top:8px;font-weight:600">${doneToday?'Nice work today!':'Don’t lose it! Recycle today.'}</p><div class="flames">${[0,1,2,3,4,5,6].map(i=>`<i class="${i<n?'on':''}">🔥</i>`).join('')}</div></div>
+ <div class="card" style="text-align:center"><h2>Today’s Mission</h2><p style="margin-top:8px">Recycle ${MISSION.goal} bottles</p><div class="bar"><i style="width:${pct}%"></i></div><div class="sm" style="text-align:left">${Math.min(m.bottles,MISSION.goal)} / ${MISSION.goal}<br>Reward ${m.done?'✔ claimed':''}</div><p style="font-weight:700;font-size:13px;margin-top:6px">🪙 +${MISSION.reward} Coins</p></div></div>
+ <div class="card"><h2>Quick Stats</h2><div class="list" style="margin-top:12px;font-size:18px"><div>+ ${money(u.lastDeposit)} last deposit</div><div>${num(u.items)} items recycled</div><div>🌱 ${u.co2} kg CO₂ saved</div></div></div>`}
+
+function rcptHtml(){const r=lookup(SAMPLE);
+ return`<div class="rcpt" id="sample">${r.lines.map(l=>`<div><span>${l.m}</span><span>${l.lb} lb</span><span>${money(l.c/100)}</span></div>`).join('')}<div class="t"><span>TOTAL PAYOUT</span><b>${money(r.total)}</b></div><div class="bc"></div><div style="justify-content:center;letter-spacing:2px">${SAMPLE}</div></div>`}
+function scanView(u){
+ return head('Scan',`<span class="bal">${money(u.balance)}</span>`)+`<div class="chip" style="font-size:17px;padding:8px">🍃 Scan your receipt to receive your refund</div>
+ <div class="cam"><video id="cam" autoplay playsinline muted hidden></video>${rcptHtml()}<div class="frame"></div><button class="shutter" data-act="shutter" aria-label="Scan receipt"></button></div>
+ ${S.flash?'<div class="chip ok">🎉 Funds successfully added!</div>':''}
+ <div class="card"><h2 style="font-weight:400">💡 Tips</h2><p class="sm" style="margin:8px 0">Align the receipt code within the frame. No camera? Tap the shutter to scan the sample receipt, or type a code:</p><div class="row"><input class="in" id="man" placeholder="GW250525-00124" style="flex:1"><button class="btn" data-act="manual" style="font-size:16px">Add</button></div></div>`}
+
+function rewardsView(u){
+ const lvl=Math.floor(u.xp/XP_PER_LEVEL)+1,toNext=XP_PER_LEVEL-u.xp%XP_PER_LEVEL,nx=REWARDS.find(r=>!r.off&&r.cost>u.points),target=nx?nx.cost:4000;
+ return`<div class="head"><div class="top"><button class="ib" data-act="bell" aria-label="Notifications">${ic('bell')}${u.unread?'<span class="dot"></span>':''}</button><span class="pill">Rewards</span><button class="ib" data-act="me" aria-label="Settings">${ic('gear')}</button></div>
+ <div class="who"><span class="av">🧢</span><div style="flex:1"><div style="font-size:22px;font-weight:600">${esc(u.name)} 🍃</div><div style="color:var(--g);font-size:22px">Level ${lvl}</div><div class="bar"><i style="width:${(XP_PER_LEVEL-toNext)/XP_PER_LEVEL*100}%"></i></div><div class="sm">${num(toNext)} XP to Level ${lvl+1}</div></div></div></div>
+ <div class="card" style="margin-top:10px"><h2 style="font-weight:500">🍃 Your Impact</h2><div class="stats" style="margin-top:10px"><div><b>${num(u.points)}</b><span class="sm">Points</span></div><div><b>${num(u.items)}</b><span class="sm">Items Recycled</span></div><div><b>${u.co2} kg</b><span class="sm">CO₂ Saved</span></div></div></div>
+ <div class="h">Your Rewards</div><div class="card row" style="align-items:center"><span style="font-size:56px">🏆</span><div><div class="sm">Total Points</div><div style="font-size:26px;color:var(--g)">${num(u.points)}</div><div class="sm" style="background:#a8e6a9;color:var(--g);border-radius:99px;padding:3px 10px;display:inline-block">Worth ${money(u.points/PTS_PER_DOLLAR)}</div></div><div><button class="link" data-act="tab" data-t="impact" style="color:var(--g)">View History ›</button><div class="sm">Points to Next Reward</div><div style="font-size:26px;color:var(--g)">${num(Math.max(0,target-u.points))}</div><div class="bar"><i style="width:${Math.min(100,u.points/target*100)}%"></i></div><div class="sm">of ${num(target)} pts</div></div></div>
+ <div class="h">Redeem Your Points</div><div class="tiles">${REWARDS.map(r=>`<button class="tile ${u.points<r.cost?'no':''}" ${r.off?'disabled':''} data-act="reward" data-id="${r.id}"><span class="e">${r.e}</span>${r.off?'':r.name}<small>${r.off?'':'🪙 '+num(r.cost)+' pts'}</small></button>`).join('')}</div>`}
+
+function impactView(u){
+ return head('Impact',prof)+`<div class="card"><h2>Your footprint</h2><div class="stats" style="margin-top:10px"><div><b>${u.trees}</b><span class="sm">Trees planted</span></div><div><b>${u.co2} kg</b><span class="sm">CO₂ saved</span></div><div><b>${u.receipts}</b><span class="sm">Receipts</span></div></div></div>
+ <div class="card"><h2>History</h2><div class="list" style="margin-top:8px">${u.history.length?u.history.map(h=>`<div class="li"><span>${esc(h.desc)}<br><span class="sm">${new Date(h.t).toLocaleDateString()}</span></span><span>${h.cash?'<b class="p">+'+money(h.cash)+'</b><br>':''}<b class="${h.pts<0?'m':'p'}">${h.pts>0?'+':''}${num(h.pts)} pts</b></span></div>`).join(''):'<p class="sm">No activity yet. Scan a receipt to get started.</p>'}</div></div>`}
+
+function render(){
+ const a=$('#app'),u=U();
+ if(!u){stopCam();a.className='';a.innerHTML=authView();return}
+ a.className=S.tab==='wallet'?'rw':'';
+ if(S.tab!=='scan')stopCam();
+ const v={home:homeView,scan:scanView,wallet:rewardsView,impact:impactView}[S.tab];
+ a.innerHTML=v(u)+nav();
+ if(S.tab==='scan'&&!S.flash)startCam();else if(S.tab==='scan'&&S.stream){const c=$('#cam');if(c){c.srcObject=S.stream;c.hidden=false;$('#sample').hidden=true}}}
+
+/* ---------- events ---------- */
+const ACT={
+ splash:()=>{S.screen='splash';render()},'go-login':()=>{S.screen='login';render()},'go-signup':()=>{S.screen='signup';render()},
+ login,signup,forgot:()=>toast('Password reset needs a backend. Not wired up in this prototype.'),
+ tab:d=>{S.tab=d.t;render();scrollTo(0,0)},shutter,manual:()=>{const v=$('#man').value;if(v)redeemReceipt(v)},
+ bell:()=>{const u=U();sheet(`<h2>Notifications</h2><div class="list">${u.notifs.length?u.notifs.slice(0,15).map(n=>`<div class="li"><span>${esc(n.m)}</span><span class="sm">${new Date(n.t).toLocaleDateString()}</span></div>`).join(''):'<p class="sm">Nothing new.</p>'}</div><button class="btn" data-act="close">Close</button>`);u.unread=false;sb.rpc('mark_notifications_read');render()},
+ me:()=>{const u=U();sheet(`<h2>${esc(u.name)}</h2><p class="sm">${esc(u.email)}</p><button class="btn" data-act="logout">Log out</button><button class="link" data-act="close">Close</button>`)},
+ close:closeSheet,logout,
+ reward:d=>{const r=REWARDS.find(x=>x.id===d.id),u=U();
+  if(u.points<r.cost)return toast(`You need ${num(r.cost-u.points)} more points for this reward.`);
+  sheet(`<h2>${r.e} ${r.name}</h2><p>Redeem ${num(r.cost)} points?</p><button class="btn" data-act="claim" data-id="${r.id}">Confirm</button><button class="link" data-act="close">Cancel</button>`)},
+ claim:d=>claim(d.id)};
+document.addEventListener('click',e=>{if(e.target.id==='sheet')return closeSheet();const a=e.target.closest('[data-act]');if(a&&ACT[a.dataset.act])ACT[a.dataset.act](a.dataset)});
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&!U()){if(S.screen==='login')login();else if(S.screen==='signup')signup()}});
+init();
+</script></body></html>
