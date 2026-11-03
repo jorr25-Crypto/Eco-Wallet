@@ -58,6 +58,10 @@ body{background:var(--page);font:16px/1.3 -apple-system,"Segoe UI",Inter,system-
 #sheet{position:fixed;inset:0;background:#0007;z-index:30;display:flex;align-items:flex-end;justify-content:center}
 #sheet[hidden]{display:none}
 #sheet>div{background:var(--bg);width:100%;max-width:430px;border-radius:24px 24px 0 0;padding:20px 20px calc(24px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:12px;max-height:80%;overflow:auto}
+.rate{display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid #0001;font-size:16px}.rate:last-child{border-bottom:0}.re{font-size:28px;width:36px;text-align:center}.rn{flex:1}.rate b{color:var(--g);font-size:18px}
+.stp{display:flex;align-items:center;gap:10px}.stp button{width:36px;height:36px;border-radius:50%;border:0;background:var(--chip);color:var(--ink);font-size:20px;cursor:pointer}.stp span{min-width:24px;text-align:center;font-weight:600}
+.calc{margin-top:12px;background:var(--bg);border-radius:14px;padding:12px;text-align:center;font-size:18px}.calc b{color:var(--g);font-size:26px}
+.steps{display:flex;flex-direction:column;gap:12px;margin-top:10px}.steps>div{display:flex;gap:12px;align-items:flex-start}.steps>div>span{width:30px;height:30px;border-radius:50%;background:var(--gl);color:#fff;display:grid;place-items:center;font-weight:700;flex:none}
 </style></head>
 <body><div id="app"></div><div id="toast"></div><div id="sheet" hidden></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
@@ -68,9 +72,11 @@ const SUPABASE_URL='https://qnayytxhuuwvzplopozq.supabase.co', SUPABASE_KEY='sb_
 const CONFIGURED=!SUPABASE_URL.startsWith('PASTE');
 const sb=CONFIGURED?supabase.createClient(SUPABASE_URL,SUPABASE_KEY):null;
 /* ---------- config: change business rules here ---------- */
-const PTS_PER_DOLLAR=100, XP_PER_LEVEL=1250, MISSION={goal:10,reward:75};
-const REWARDS=[{id:'tree',name:'Plant a Tree',cost:1000,e:'🌳'},{id:'coffee',name:'Coffee Gift Card',cost:2500,e:'☕'},{id:'etransfer',name:'E-Transfer',cost:3000,e:'💸'},{id:'soon',name:'Coming soon',cost:4000,e:'✨',off:true}];
-const RATES={'Aluminum Cans':.60,'Plastic Bottles (PET)':.35,'Cardboard':.10,'Glass Bottles':.15};
+const XP_PER_LEVEL=1250, MISSION={goal:10,reward:75};
+const REWARDS=[{id:'tree',name:'Plant a Tree',cost:1000,e:'🌳'},{id:'coffee',name:'Coffee Gift Card',cost:2500,e:'☕',off:true},{id:'etransfer',name:'E-Transfer',cost:3000,e:'💸',off:true},{id:'soon',name:'More rewards',cost:4000,e:'✨',off:true}];
+/* Points per container. These are defaults; the app loads the live values from the point_rates table in Supabase. */
+const RATES=[{id:'can',name:'Cans',e:'🥫',pts:5},{id:'bottle',name:'Bottles',e:'🍾',pts:10},{id:'milk',name:'Milk bottles',e:'🥛',pts:15},{id:'wine',name:'Wine bottles',e:'🍷',pts:20},{id:'yogurt',name:'Yogurt bottles',e:'🥣',pts:2}];
+const SAMPLE_COUNTS={can:40,bottle:25,milk:6,wine:4,yogurt:10};
 const SAMPLE='GW250525-00123';
 /* ---------- helpers ---------- */
 const $=s=>document.querySelector(s);
@@ -80,12 +86,12 @@ const money=n=>'$'+n.toFixed(2), num=n=>Math.round(n).toLocaleString('en-US');
 const day=(d=new Date())=>d.toLocaleDateString('en-CA');
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 async function sha(t){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(t));return[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}
-let S={screen:'splash',tab:'home',stream:null,flash:false,eye:false};
+let S={screen:'splash',tab:'home',stream:null,flash:false,eye:false,calc:{},prev:'home'};
 const I={
 bell:'<path d="M6 16v-5a6 6 0 0112 0v5l2 2H4zM10 21h4"/>',user:'<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/><circle cx="12" cy="12" r="10"/>',
 gear:'<circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="8" stroke-dasharray="3 2.4"/>',home:'<path d="M3 11l9-8 9 8v10h-6v-6H9v6H3z"/>',
 qr:'<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3h-3zM19 14h2v2M14 20h2M19 19h2v2"/>',
-wallet:'<path d="M3 7h16a2 2 0 012 2v10H5a2 2 0 01-2-2zM3 7l12-3v3"/><circle cx="16.5" cy="14" r="1"/>',tree:'<path d="M12 2l5 7h-3l4 6h-5v7h-2v-7H6l4-6H7z"/>'};
+wallet:'<path d="M3 7h16a2 2 0 012 2v10H5a2 2 0 01-2-2zM3 7l12-3v3"/><circle cx="16.5" cy="14" r="1"/>',tree:'<path d="M12 2l5 7h-3l4 6h-5v7h-2v-7H6l4-6H7z"/>',back:'<path d="M15 5l-7 7 7 7"/>'};
 const ic=n=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round">${I[n]}</svg>`;
 function toast(m){const t=$('#toast');t.textContent=m;t.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(()=>t.style.display='none',2600)}
 function sheet(h){const s=$('#sheet');s.innerHTML='<div>'+h+'</div>';s.hidden=false}
@@ -102,21 +108,14 @@ async function load(){
   sb.from('notifications').select('*').order('created_at',{ascending:false}).limit(20)]);
  const d=p.data;if(!d){ME=null;return}
  const tx=t.data||[],nt=n.data||[];
- ME={name:d.name,email:d.email,balance:d.balance_cents/100,points:d.points,xp:d.xp,items:d.items,co2:+d.co2,lastDeposit:d.last_deposit_cents/100,
+ ME={name:d.name,email:d.email,balance:d.balance_cents/100,points:d.points,xp:d.xp,items:d.items,co2:+d.co2,lastDeposit:d.last_deposit_cents,
   streak:d.streak,lastDay:d.last_day,mission:{day:d.mission_day,bottles:d.mission_bottles,done:d.mission_done},trees:d.trees,receipts:d.receipts,
   history:tx.map(x=>({t:x.created_at,desc:x.description,cash:(x.cash_cents||0)/100,pts:x.points})),
   notifs:nt.map(x=>({t:x.created_at,m:x.message})),unread:nt.some(x=>!x.read)}}
 
-/* ---------- receipt lookup (mock server: replace with an API call) ---------- */
-function lookup(code){
- if(!/^GW\d{6}-\d{5}$/.test(code))return null;
- let lb;
- if(code===SAMPLE)lb=[12.6,8.4,15.2,21.3];
- else{let s=+code.replace(/\D/g,'');const r=()=>(s=(s*9301+49297)%233280)/233280;lb=[0,0,0,0].map(()=>Math.round((r()*18+2)*10)/10)}
- const lines=Object.entries(RATES).map(([m,rate],i)=>({m,lb:lb[i],rate,c:Math.round(lb[i]*rate*100+1e-6)}));
- const total=lines.reduce((a,l)=>a+l.c,0)/100,w=lines.reduce((a,l)=>a+l.lb,0);
- return{code,lines,total,bottles:Math.round(lb[1]*22+lb[3]*2.5),items:Math.round(lb[0]*32+lb[1]*22+lb[2]*.5+lb[3]*2.5),co2:Math.round(w*.2*10)/10}}
-
+async function loadRates(){
+ const{data}=await sb.from('point_rates').select('*').eq('active',true).order('sort');
+ if(data&&data.length)RATES.splice(0,RATES.length,...data.map(x=>({id:x.id,name:x.name,e:x.emoji,pts:x.points})))}
 async function redeemReceipt(raw){
  const code=raw.replace(/\s/g,'').toUpperCase().replace(/^(GW\d{6})-?(\d{5})$/,'$1-$2');
  if(!/^GW\d{6}-\d{5}$/.test(code))return toast('Code not recognized. Receipt codes look like GW250525-00123.');
@@ -147,7 +146,7 @@ async function login(){
 async function logout(){stopCam();await sb.auth.signOut();ME=null;S.screen='splash';closeSheet();render()}
 async function init(){
  if(!CONFIGURED){$('#app').innerHTML='<div class="auth"><div class="card">Add your Supabase Project URL and anon key at the top of this file’s script.</div></div>';return}
- await load();render()}
+ await loadRates();await load();render()}
 
 /* ---------- camera ---------- */
 async function startCam(){
@@ -174,17 +173,17 @@ function authView(){
  return`<div class="auth">${logo}<div class="form" style="align-items:center;margin-top:16px"><button class="btn" data-act="go-login">Log in</button><button class="btn" data-act="go-signup">Sign up</button></div></div>`}
 
 function homeView(u){rollDay(u);const m=u.mission,pct=Math.min(100,m.bottles/MISSION.goal*100),n=Math.min(u.streak,7),doneToday=u.lastDay===day();
- return head('Home',prof)+`<div class="big">${money(u.balance)}</div>
+ return head('Home',prof)+`<div class="big">${num(u.points)}<span style="font-size:18px"> pts</span></div>
  <div class="row"><div class="card streak"><h3>🔥 ${u.streak} Day Streak</h3><p style="margin-top:8px;font-weight:600">${doneToday?'Nice work today!':'Don’t lose it! Recycle today.'}</p><div class="flames">${[0,1,2,3,4,5,6].map(i=>`<i class="${i<n?'on':''}">🔥</i>`).join('')}</div></div>
- <div class="card" style="text-align:center"><h2>Today’s Mission</h2><p style="margin-top:8px">Recycle ${MISSION.goal} bottles</p><div class="bar"><i style="width:${pct}%"></i></div><div class="sm" style="text-align:left">${Math.min(m.bottles,MISSION.goal)} / ${MISSION.goal}<br>Reward ${m.done?'✔ claimed':''}</div><p style="font-weight:700;font-size:13px;margin-top:6px">🪙 +${MISSION.reward} Coins</p></div></div>
- <div class="card"><h2>Quick Stats</h2><div class="list" style="margin-top:12px;font-size:18px"><div>+ ${money(u.lastDeposit)} last deposit</div><div>${num(u.items)} items recycled</div><div>🌱 ${u.co2} kg CO₂ saved</div></div></div>`}
+ <div class="card" style="text-align:center"><h2>Today’s Mission</h2><p style="margin-top:8px">Recycle ${MISSION.goal} bottles</p><div class="bar"><i style="width:${pct}%"></i></div><div class="sm" style="text-align:left">${Math.min(m.bottles,MISSION.goal)} / ${MISSION.goal}<br>Reward ${m.done?'✔ claimed':''}</div><p style="font-weight:700;font-size:13px;margin-top:6px">🪙 +${MISSION.reward} pts</p></div></div>
+ <div class="card"><h2>Quick Stats</h2><div class="list" style="margin-top:12px;font-size:18px"><div>+ ${num(u.lastDeposit)} pts last scan</div><div>${num(u.items)} items recycled</div><div>🌱 ${u.co2} kg CO₂ saved</div></div><button class="link" data-act="points" style="color:var(--g);margin-top:12px;font-size:15px">How points work ›</button></div>`}
 
-function rcptHtml(){const r=lookup(SAMPLE);
- return`<div class="rcpt" id="sample">${r.lines.map(l=>`<div><span>${l.m}</span><span>${l.lb} lb</span><span>${money(l.c/100)}</span></div>`).join('')}<div class="t"><span>TOTAL PAYOUT</span><b>${money(r.total)}</b></div><div class="bc"></div><div style="justify-content:center;letter-spacing:2px">${SAMPLE}</div></div>`}
+function rcptHtml(){const q=r=>SAMPLE_COUNTS[r.id]||0,tot=RATES.reduce((a,r)=>a+q(r)*r.pts,0);
+ return`<div class="rcpt" id="sample">${RATES.map(r=>`<div><span>${r.e} ${r.name}</span><span>×${q(r)}</span><span>${q(r)*r.pts} pts</span></div>`).join('')}<div class="t"><span>TOTAL POINTS</span><b>${num(tot)}</b></div><div class="bc"></div><div style="justify-content:center;letter-spacing:2px">${SAMPLE}</div></div>`}
 function scanView(u){
- return head('Scan',`<span class="bal">${money(u.balance)}</span>`)+`<div class="chip" style="font-size:17px;padding:8px">🍃 Scan your receipt to receive your refund</div>
+ return head('Scan',`<span class="bal">⭐ ${num(u.points)}</span>`)+`<div class="chip" style="font-size:17px;padding:8px">🍃 Scan your receipt to earn points</div>
  <div class="cam"><video id="cam" autoplay playsinline muted hidden></video>${rcptHtml()}<div class="frame"></div><button class="shutter" data-act="shutter" aria-label="Scan receipt"></button></div>
- ${S.flash?'<div class="chip ok">🎉 Funds successfully added!</div>':''}
+ ${S.flash?'<div class="chip ok">🎉 Points added!</div>':''}
  <div class="card"><h2 style="font-weight:400">💡 Tips</h2><p class="sm" style="margin:8px 0">Align the receipt code within the frame. No camera? Tap the shutter to scan the sample receipt, or type a code:</p><div class="row"><input class="in" id="man" placeholder="GW250525-00124" style="flex:1"><button class="btn" data-act="manual" style="font-size:16px">Add</button></div></div>`}
 
 function rewardsView(u){
@@ -192,8 +191,18 @@ function rewardsView(u){
  return`<div class="head"><div class="top"><button class="ib" data-act="bell" aria-label="Notifications">${ic('bell')}${u.unread?'<span class="dot"></span>':''}</button><span class="pill">Rewards</span><button class="ib" data-act="me" aria-label="Settings">${ic('gear')}</button></div>
  <div class="who"><span class="av">🧢</span><div style="flex:1"><div style="font-size:22px;font-weight:600">${esc(u.name)} 🍃</div><div style="color:var(--g);font-size:22px">Level ${lvl}</div><div class="bar"><i style="width:${(XP_PER_LEVEL-toNext)/XP_PER_LEVEL*100}%"></i></div><div class="sm">${num(toNext)} XP to Level ${lvl+1}</div></div></div></div>
  <div class="card" style="margin-top:10px"><h2 style="font-weight:500">🍃 Your Impact</h2><div class="stats" style="margin-top:10px"><div><b>${num(u.points)}</b><span class="sm">Points</span></div><div><b>${num(u.items)}</b><span class="sm">Items Recycled</span></div><div><b>${u.co2} kg</b><span class="sm">CO₂ Saved</span></div></div></div>
- <div class="h">Your Rewards</div><div class="card row" style="align-items:center"><span style="font-size:56px">🏆</span><div><div class="sm">Total Points</div><div style="font-size:26px;color:var(--g)">${num(u.points)}</div><div class="sm" style="background:#a8e6a9;color:var(--g);border-radius:99px;padding:3px 10px;display:inline-block">Worth ${money(u.points/PTS_PER_DOLLAR)}</div></div><div><button class="link" data-act="tab" data-t="impact" style="color:var(--g)">View History ›</button><div class="sm">Points to Next Reward</div><div style="font-size:26px;color:var(--g)">${num(Math.max(0,target-u.points))}</div><div class="bar"><i style="width:${Math.min(100,u.points/target*100)}%"></i></div><div class="sm">of ${num(target)} pts</div></div></div>
- <div class="h">Redeem Your Points</div><div class="tiles">${REWARDS.map(r=>`<button class="tile ${u.points<r.cost?'no':''}" ${r.off?'disabled':''} data-act="reward" data-id="${r.id}"><span class="e">${r.e}</span>${r.off?'':r.name}<small>${r.off?'':'🪙 '+num(r.cost)+' pts'}</small></button>`).join('')}</div>`}
+ <div class="h">Your Rewards</div><div class="card row" style="align-items:center"><span style="font-size:56px">🏆</span><div><div class="sm">Total Points</div><div style="font-size:26px;color:var(--g)">${num(u.points)}</div><div class="sm" style="background:#a8e6a9;color:var(--g);border-radius:99px;padding:3px 10px;display:inline-block">⭐ Level ${lvl}</div></div><div><button class="link" data-act="tab" data-t="impact" style="color:var(--g)">View History ›</button><div class="sm">Points to Next Reward</div><div style="font-size:26px;color:var(--g)">${num(Math.max(0,target-u.points))}</div><div class="bar"><i style="width:${Math.min(100,u.points/target*100)}%"></i></div><div class="sm">of ${num(target)} pts</div></div></div>
+ <div class="h">Redeem Your Points</div><div class="tiles">${REWARDS.map(r=>`<button class="tile ${u.points<r.cost?'no':''}" ${r.off?'disabled':''} data-act="reward" data-id="${r.id}"><span class="e">${r.e}</span>${r.name}<small>${r.off?'Coming soon':'🪙 '+num(r.cost)+' pts'}</small></button>`).join('')}</div><button class="link" data-act="points" style="color:#fff;align-self:flex-start;font-size:15px">How do I earn points? ›</button>`}
+
+const calcTotal=()=>RATES.reduce((a,r)=>a+(S.calc[r.id]||0)*r.pts,0);
+function pointsView(u){
+ return`<div class="top"><button class="ib" data-act="back" aria-label="Back">${ic('back')}</button><span class="pill">Points</span><button class="ib" data-act="bell" aria-label="Notifications">${ic('bell')}${u.unread?'<span class="dot"></span>':''}</button></div>
+ <div class="card" style="text-align:center"><h2 style="font-size:24px">Every container counts</h2><p class="sm" style="margin-top:6px;font-size:15px">Recycle at the depot, scan your receipt, and earn points for each item.</p></div>
+ <div class="card"><h2>Points per item</h2><div class="list" style="margin-top:8px">${RATES.map(r=>`<div class="rate"><span class="re">${r.e}</span><span class="rn">${esc(r.name)}</span><b>${r.pts} pts</b></div>`).join('')}</div></div>
+ <div class="card"><h2>Try it</h2><p class="sm" style="margin:4px 0 8px">Add the items you plan to return and see what you’ll earn.</p><div class="list">${RATES.map(r=>`<div class="rate"><span class="re">${r.e}</span><span class="rn">${esc(r.name)}</span><span class="stp"><button data-act="calc" data-id="${r.id}" data-d="-1" aria-label="Fewer ${esc(r.name)}">−</button><span id="n-${r.id}">${S.calc[r.id]||0}</span><button data-act="calc" data-id="${r.id}" data-d="1" aria-label="More ${esc(r.name)}">+</button></span></div>`).join('')}</div><div class="calc">You’d earn <b id="calcTotal">${num(calcTotal())}</b> pts</div></div>
+ <div class="card"><h2>How it works</h2><div class="steps"><div><span>1</span><p><b>Recycle</b><br><span class="sm">Return your containers at a bottle depot.</span></p></div><div><span>2</span><p><b>Scan your receipt</b><br><span class="sm">Open the Scan tab and scan the code on your receipt.</span></p></div><div><span>3</span><p><b>Collect points</b><br><span class="sm">Points land in your account right away. Each receipt can only be scanned once.</span></p></div></div></div>
+ <div class="card"><h2>What can you earn?</h2><div class="list" style="margin-top:8px"><div class="rate"><span class="re">🔥</span><span class="rn">Keep your streak going</span></div><div class="rate"><span class="re">🎯</span><span class="rn">Finish the daily mission: +${MISSION.reward} pts</span></div><div class="rate"><span class="re">🌳</span><span class="rn">Trade ${num(REWARDS[0].cost)} pts to plant a tree</span></div></div></div>
+ <p class="sm" style="text-align:center">Points have no cash value. Rates may change over time.</p>`}
 
 function impactView(u){
  return head('Impact',prof)+`<div class="card"><h2>Your footprint</h2><div class="stats" style="margin-top:10px"><div><b>${u.trees}</b><span class="sm">Trees planted</span></div><div><b>${u.co2} kg</b><span class="sm">CO₂ saved</span></div><div><b>${u.receipts}</b><span class="sm">Receipts</span></div></div></div>
@@ -204,7 +213,7 @@ function render(){
  if(!u){stopCam();a.className='';a.innerHTML=authView();return}
  a.className=S.tab==='wallet'?'rw':'';
  if(S.tab!=='scan')stopCam();
- const v={home:homeView,scan:scanView,wallet:rewardsView,impact:impactView}[S.tab];
+ const v={home:homeView,scan:scanView,wallet:rewardsView,impact:impactView,points:pointsView}[S.tab];
  a.innerHTML=v(u)+nav();
  if(S.tab==='scan'&&!S.flash)startCam();else if(S.tab==='scan'&&S.stream){const c=$('#cam');if(c){c.srcObject=S.stream;c.hidden=false;$('#sample').hidden=true}}}
 
@@ -212,7 +221,9 @@ function render(){
 const ACT={
  splash:()=>{S.screen='splash';render()},'go-login':()=>{S.screen='login';render()},'go-signup':()=>{S.screen='signup';render()},
  login,signup,forgot:()=>toast('Password reset needs a backend. Not wired up in this prototype.'),
- tab:d=>{S.tab=d.t;render();scrollTo(0,0)},shutter,manual:()=>{const v=$('#man').value;if(v)redeemReceipt(v)},
+ tab:d=>{S.tab=d.t;render();scrollTo(0,0)},
+ points:()=>{S.prev=S.tab;S.tab='points';render();scrollTo(0,0)},back:()=>{S.tab=S.prev||'home';render();scrollTo(0,0)},
+ calc:d=>{const n=Math.max(0,Math.min(99,(S.calc[d.id]||0)+ +d.d));S.calc[d.id]=n;$('#n-'+d.id).textContent=n;$('#calcTotal').textContent=num(calcTotal())},shutter,manual:()=>{const v=$('#man').value;if(v)redeemReceipt(v)},
  bell:()=>{const u=U();sheet(`<h2>Notifications</h2><div class="list">${u.notifs.length?u.notifs.slice(0,15).map(n=>`<div class="li"><span>${esc(n.m)}</span><span class="sm">${new Date(n.t).toLocaleDateString()}</span></div>`).join(''):'<p class="sm">Nothing new.</p>'}</div><button class="btn" data-act="close">Close</button>`);u.unread=false;sb.rpc('mark_notifications_read');render()},
  me:()=>{const u=U();sheet(`<h2>${esc(u.name)}</h2><p class="sm">${esc(u.email)}</p><button class="btn" data-act="logout">Log out</button><button class="link" data-act="close">Close</button>`)},
  close:closeSheet,logout,
