@@ -119,8 +119,9 @@ async function loadRates(){
 async function redeemReceipt(raw){
  const code=raw.replace(/\s/g,'').toUpperCase().replace(/^(GW\d{6})-?(\d{5})$/,'$1-$2');
  if(!/^GW\d{6}-\d{5}$/.test(code))return toast('Code not recognized. Receipt codes look like GW250525-00123.');
- const{error}=await sb.rpc('redeem_receipt',{p_code:code});
+ const{data,error}=await sb.rpc('redeem_receipt',{p_code:code});
  if(error)return toast(error.message);
+ if(data!=='ok')return toast(data||'Something went wrong. Try again.');
  await load();S.flash=true;render();setTimeout(()=>{S.flash=false;if(S.tab==='scan')render()},3500)}
 
 async function claim(id){
